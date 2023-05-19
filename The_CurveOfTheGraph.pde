@@ -4,7 +4,7 @@ float g_RunTime = 0.0f;
 
 void setup()
 {
-  size(800, 800);
+  size(1000, 1000);
   background(80);
   g_Center = new PVector(width/2, height/2);
 }
@@ -18,32 +18,40 @@ void draw()
   rect(-5, -5, width+5, height+5);
   
   colorMode(HSB, 100);
-  float T = g_RunTime * 0.00003f;
+  
+  float T = g_RunTime * 0.00001f;
   
   {    
-    float R = 250.0f;
+    float R = 220.0f;
+    float INNER_R = 150.0f;
     
-    for (float phase = 0.0; phase < TWO_PI; phase += TWO_PI/10)
+    int NUM_PHASE_LOOPS = 1;
+    for (float phase = 0.0; phase < TWO_PI; phase += TWO_PI/NUM_PHASE_LOOPS)
     {
       float R_MAX_DEV = 225.0;
-      for (float r_dev = 0.0; r_dev < R_MAX_DEV; r_dev += R_MAX_DEV/4)
+      int NUM_R_DEV_LOOPS = 1;
+      for (float r_dev = 0.0; r_dev < R_MAX_DEV; r_dev += R_MAX_DEV/NUM_R_DEV_LOOPS)
       {
         float r_dev_t = T * 7f;
         
-        for (float r_dev_phase = 0.0; r_dev_phase < TWO_PI; r_dev_phase += TWO_PI/4)
+        int NUM_R_DEV_PHASE_LOOPS = 1;
+        for (float r_dev_phase = 0.0; r_dev_phase < TWO_PI; r_dev_phase += TWO_PI/NUM_R_DEV_PHASE_LOOPS)
         {
           float r = o(R, r_dev, r_dev_t, TWO_PI, r_dev_phase);
         
           float T_MAX_DEV = 0.5f;
-          for (float t_dev = 0.0; t_dev < T_MAX_DEV; t_dev += T_MAX_DEV/3)
+          int NUM_T_MAX_DEV_LOOPS = 1;
+          for (float t_dev = 0.0; t_dev < T_MAX_DEV; t_dev += T_MAX_DEV/NUM_T_MAX_DEV_LOOPS)
           {
             float t_dev_t = T * 3.f;
             float t = o(T, t_dev, t_dev_t, TWO_PI, 0.0);
             PVector p_center = f_r(t, TWO_PI, phase, r, g_Center);
+            PVector p_disp = f_r(t*7.0f, TWO_PI, phase, INNER_R, g_Null);
+            p_center.add(p_disp);
             
             float BASE_DOT_R = 10.0;
             float dot_r_t = T * 5f;
-            float dot_r = o(BASE_DOT_R, BASE_DOT_R, dot_r_t, TWO_PI, 0.0);
+            float dot_r = o(BASE_DOT_R*2, BASE_DOT_R, dot_r_t, TWO_PI, 0.0);
            
             float hue_phase = r * 0.0075f;
             float hue_t = T * 3.1f;
@@ -53,7 +61,21 @@ void draw()
             float sat = o(50, 25, sat_t, TWO_PI, 0);
             float bright = o(50, 15, bright_t, TWO_PI, 0);
             fill(hue, sat, bright);
-            circle(p_center.x, p_center.y, dot_r); 
+            
+            int HALF_NUM_SHADOW_COUNT = 1;
+            float shadow_dot_r = dot_r * 0.7f;
+            float shadow_ang = PI/(HALF_NUM_SHADOW_COUNT*2);
+            float shadow_r = dot_r + shadow_dot_r + 2.0;
+            for (int shadow_disp_index = 0; shadow_disp_index < HALF_NUM_SHADOW_COUNT; ++shadow_disp_index)
+            {
+              float shadow_phase = phase + ((shadow_disp_index + 1) * shadow_ang);
+              PVector shadow_p1 = f_r(t * 4.f, TWO_PI, shadow_phase, shadow_r, p_center); 
+              PVector shadow_p2 = f_r(t * 4.f, TWO_PI, -shadow_phase, shadow_r, p_center);
+              circle(shadow_p1.x, shadow_p1.y, shadow_dot_r);
+              circle(shadow_p2.x, shadow_p2.y, shadow_dot_r);
+            }
+            
+            circle(p_center.x, p_center.y, dot_r);
           } 
         }
       }
