@@ -1,11 +1,11 @@
 PVector g_Center;
 PVector g_Null = new PVector(0.0, 0.0);
-float g_RunTime = 0.0f;
+float T = 0.0f;
 
 void setup()
 {
   size(1000, 1000);
-  background(80);
+  background(200);
   g_Center = new PVector(width/2, height/2);
 }
 
@@ -14,22 +14,23 @@ void draw()
   noStroke();
   
   colorMode(RGB, 255);
-  fill(80, 60);
+  fill(200, 60);
   rect(-5, -5, width+5, height+5);
   
   colorMode(HSB, 100);
   
-  float T = g_RunTime * 0.00001f;
+  float T_delta = 0.0001f;
   
   {    
     float R = 220.0f;
-    float INNER_R = 150.0f;
+    float INNER_R1 = 150.0f;
+    float INNER_R2 = 75.f;
     
-    int NUM_PHASE_LOOPS = 1;
+    int NUM_PHASE_LOOPS = 4;
     for (float phase = 0.0; phase < TWO_PI; phase += TWO_PI/NUM_PHASE_LOOPS)
     {
       float R_MAX_DEV = 225.0;
-      int NUM_R_DEV_LOOPS = 1;
+      int NUM_R_DEV_LOOPS = 3;
       for (float r_dev = 0.0; r_dev < R_MAX_DEV; r_dev += R_MAX_DEV/NUM_R_DEV_LOOPS)
       {
         float r_dev_t = T * 7f;
@@ -40,14 +41,16 @@ void draw()
           float r = o(R, r_dev, r_dev_t, TWO_PI, r_dev_phase);
         
           float T_MAX_DEV = 0.5f;
-          int NUM_T_MAX_DEV_LOOPS = 1;
+          int NUM_T_MAX_DEV_LOOPS = 3;
           for (float t_dev = 0.0; t_dev < T_MAX_DEV; t_dev += T_MAX_DEV/NUM_T_MAX_DEV_LOOPS)
           {
             float t_dev_t = T * 3.f;
             float t = o(T, t_dev, t_dev_t, TWO_PI, 0.0);
             PVector p_center = f_r(t, TWO_PI, phase, r, g_Center);
-            PVector p_disp = f_r(t*7.0f, TWO_PI, phase, INNER_R, g_Null);
-            p_center.add(p_disp);
+            PVector p_disp_1 = f_r(t*5.90f, TWO_PI, phase, INNER_R1, g_Null);
+            PVector p_disp_2 = f_r(t*3.5f, TWO_PI, phase, INNER_R2, g_Null);
+            p_center.add(p_disp_1);
+            p_center.add(p_disp_2);
             
             float BASE_DOT_R = 10.0;
             float dot_r_t = T * 5f;
@@ -82,7 +85,13 @@ void draw()
     }
   }
   
-  g_RunTime = millis();
+  T += T_delta;
+  if (T >= 1.f)
+  {
+   T -= 1.f; 
+  }
+  
+  saveFrame("folder/export_" + Integer.toString(frameCount) + ".tif");
 }
 
 float o(float val, float dev, float freq, float period, float phase)
